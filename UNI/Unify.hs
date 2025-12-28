@@ -13,12 +13,13 @@ import qualified Test.QuickCheck as QC
 -- non-variable binding; given a non-variable term returns
 -- this term
 walk :: T.Subst -> T.T -> T.T
-walk = undefined
+walk s (T.V v) = maybe (T.V v) (walk s) (T.lookup s v)
+walk s t = t
 
 -- Occurs-check for terms: return true, if
 -- a variable occurs in the term
 occurs :: T.Var -> T.T -> Bool
-occurs = undefined
+occurs = T.termContains
 
 -- Unification generic function. Takes an optional
 -- substitution and two unifiable structures and
@@ -27,7 +28,15 @@ class Unifiable a where
   unify :: Maybe T.Subst -> a -> a -> Maybe T.Subst
 
 instance Unifiable T.T where
-  unify s t1 t2 = undefined
+  unify Nothing _ _ = Nothing
+  unify s@(Just s') t1 t2 = case (walk s' t1, walk s' t2) of
+                                  (T.V v1, T.V v2) | v1 == v2 -> s
+                                  (T.V v1, t2') | not $ occurs v1 t2' -> Just $ T.put s' v1 t2'
+                                  (t1', T.V v2) | not $ occurs v2 t1' -> Just $ T.put s' v2 t1'
+                                  (T.C c1 ts1, T.C c2 ts2) | c1 == c2 && length ts1 == length ts2
+                                                -> let unifyPair s (t1, t2) = unify s t1 t2 in
+                                                      foldl unifyPair s (zip ts1 ts2)
+                                  _ -> Nothing
 
 -- An infix version of unification
 -- with empty substitution

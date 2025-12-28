@@ -1,0 +1,18 @@
+cabal-version:      3.0
+name:               LRP-supplementary
+version:            0.1.0.0
+license:            MIT
+license-file:       LICENSE
+author:             Vasily Fedorov
+maintainer:         vasily.fedorov@arsysop.ru
+build-type:         Simple
+
+common warnings
+    ghc-options: -Wall
+
+library
+    import:           warnings
+    exposed-modules:  Term Unify SLD MK
+    build-depends:    base, containers, QuickCheck, mtl, directory, process
+    hs-source-dirs:   UNI SLD MK
+    default-language: Haskell2010
